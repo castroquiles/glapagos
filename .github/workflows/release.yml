@@ -21,7 +21,7 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Tag $TAG does not follow semantic versioning (vX.Y.Z)"
+            echo "Tag $TAG does not follow semantic versioning"
             exit 1
           fi
           echo "Valid tag: $TAG"
@@ -92,17 +92,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -n "$PREV" ]; then
-            LOG=$(git log ${PREV}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-          else
-            LOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          fi
-          printf 'changelog<<CHANGELOG_EOF\n%s\nCHANGELOG_EOF\n' "$LOG" >> $GITHUB_OUTPUT
-
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
@@ -110,6 +99,6 @@ jobs:
             Release ${{ github.ref_name }}
 
             See ROADMAP.md for milestone context.
-            See CHANGELOG in commit history for detailed changes.
+            Full changes are documented in the commit history.
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
