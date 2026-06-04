@@ -1,0 +1,51 @@
+name: glapagos
+
+services:
+  api:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+    image: glapagos/platform:dev
+    ports:
+      - "8000:8000"
+    environment:
+      GLAPAGOS_ENV: development
+      DATABASE_URL: postgresql://glapagos:dev@postgres:5432/glapagos_dev
+      SECRET_KEY: dev-secret-not-for-production
+      API_DEBUG: "true"
+    volumes:
+      - ../../src:/app/src:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: glapagos
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: glapagos_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glapagos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  docs:
+    image: python:3.11-slim
+    working_dir: /app
+    command: >
+      sh -c "pip install mkdocs mkdocs-material mkdocstrings[python] --quiet &&
+             mkdocs serve --dev-addr 0.0.0.0:8001"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ../../:/app:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
