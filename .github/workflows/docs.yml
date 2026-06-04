@@ -1,0 +1,35 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '*.md'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install documentation dependencies
+        run: pip install mkdocs mkdocs-material mkdocstrings[python]
+
+      - name: Deploy documentation
+        run: mkdocs gh-deploy --force

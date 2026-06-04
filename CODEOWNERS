@@ -1,0 +1,17 @@
+* @glapagos-ai/maintainers
+CONSTITUTION.md @glapagos-ai/governance
+GOVERNANCE.md @glapagos-ai/governance
+CHARTER.md @glapagos-ai/governance
+MANIFESTO.md @glapagos-ai/governance
+CITIZENSHIP.md @glapagos-ai/governance
+docs/governance/ @glapagos-ai/governance
+community/ @glapagos-ai/governance
+SECURITY.md @glapagos-ai/security
+.github/workflows/ @glapagos-ai/security @glapagos-ai/maintainers
+infrastructure/ @glapagos-ai/security @glapagos-ai/infra
+src/core/ @glapagos-ai/core
+src/api/ @glapagos-ai/core
+docs/ @glapagos-ai/docs
+README.md @glapagos-ai/docs @glapagos-ai/maintainers
+data/ @glapagos-ai/data-governance
+docs/policy/ @glapagos-ai/policy
