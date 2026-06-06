@@ -1,6 +1,16 @@
 # GLAPAGOS
 ## Global Laboratory for AI Progress and Governance: Open Systems
 
+[![Dashboard](https://img.shields.io/badge/dashboard-live-2563eb?style=flat-square)](https://castroquiles.github.io/glapagos)
+[![License](https://img.shields.io/badge/code-Apache%202.0-green?style=flat-square)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-CC%20BY%204.0-blue?style=flat-square)](LICENSE)
+
+**[Live Dashboard](https://castroquiles.github.io/glapagos)** -- Regional AI Governance Map for the Americas  
+**[Platform](https://www.glapagos.com)** -- glapagos.com  
+**[API](https://www.glapagos.ai)** -- glapagos.ai
+
+---
+
 An open, multilateral platform for artificial intelligence research,
 governance, safety, and applied development across the Western Hemisphere.
 
