@@ -1,0 +1,5 @@
+site_name: Glapagos
+site_description: Regional AI Governance Policy Dashboard
+docs_dir: docs
+theme:
+  name: material
