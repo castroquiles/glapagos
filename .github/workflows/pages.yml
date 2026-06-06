@@ -25,17 +25,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject data into dashboard
-        run: |
-          DATA=$(cat data/initiatives.json)
-          TEMPLATE=$(cat src/dashboard/index.html)
-          echo "$TEMPLATE" | sed "s|__INITIATIVES_DATA__|$(echo $DATA | sed 's/[&/\]/\\&/g')|g" > dist/index.html
-        shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Create dist directory and inject data
-        run: |
-          mkdir -p dist
-          python3 scripts/build_dashboard.py
+      - name: Build dashboard
+        run: python3 scripts/build_dashboard.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
