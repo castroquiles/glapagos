@@ -55,6 +55,36 @@
 
     header a:hover { color: var(--text); }
 
+    .api-banner {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .api-banner span {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .api-status {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      background: #1e3a2e;
+      color: #6ee7b7;
+    }
+
+    .api-status.offline {
+      background: #3a1e1e;
+      color: #fca5a5;
+    }
+
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -174,11 +204,11 @@
       margin-top: 2px;
     }
 
-    .badge-governance   { background: var(--accent-dim); color: #93c5fd; }
-    .badge-policy       { background: #1e3a2e; color: #6ee7b7; }
+    .badge-governance        { background: var(--accent-dim); color: #93c5fd; }
+    .badge-policy            { background: #1e3a2e; color: #6ee7b7; }
     .badge-foundation-models { background: #2d1e3a; color: #c4b5fd; }
     .badge-infrastructure    { background: #1e2a3a; color: #7dd3fc; }
-    .badge-safety       { background: #3a1e1e; color: #fca5a5; }
+    .badge-safety            { background: #3a1e1e; color: #fca5a5; }
 
     .card-institution {
       font-size: 0.7rem;
@@ -244,7 +274,32 @@
       font-family: var(--font-mono);
     }
 
+    .error-state {
+      grid-column: 1 / -1;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+
+    .error-state p {
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+      color: #fca5a5;
+      margin-bottom: 0.75rem;
+    }
+
+    .error-state code {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      background: var(--surface);
+      padding: 0.75rem 1.25rem;
+      border-radius: 4px;
+      display: inline-block;
+      border: 1px solid var(--border);
+    }
+
     .loading {
+      grid-column: 1 / -1;
       padding: 3rem 2rem;
       text-align: center;
       color: var(--text-dim);
@@ -279,6 +334,7 @@
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
       .stat { border-right: none; border-bottom: 1px solid var(--border); }
       header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .api-banner { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -286,8 +342,13 @@
 
 <header>
   <h1><span>GLAPAGOS</span> / regional ai governance dashboard</h1>
-  <a href="/api/docs" target="_blank">api docs</a>
+  <a href="/api/docs" target="_blank" id="api-docs-link">api docs</a>
 </header>
+
+<div class="api-banner">
+  <span id="api-banner-text">connecting to GLAPAGOS Platform API...</span>
+  <span class="api-status" id="api-status">checking...</span>
+</div>
 
 <div class="stats-bar">
   <div class="stat">
@@ -340,7 +401,7 @@
 </div>
 
 <div class="grid" id="grid">
-  <div class="loading">loading initiatives...</div>
+  <div class="loading">connecting to api...</div>
 </div>
 
 <footer>
@@ -349,13 +410,29 @@
 </footer>
 
 <script>
+  // API_BASE is set at runtime.
+  // - Local:      http://localhost:8000
+  // - Production: injected via meta tag or defaults to same origin
+  // To override, add this to your page head before this script:
+  //   <meta name="api-base" content="https://your-railway-url.up.railway.app">
+  const metaBase = document.querySelector('meta[name="api-base"]');
+  const API_BASE = metaBase
+    ? metaBase.getAttribute("content").replace(/\/$/, "")
+    : window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+      ? "http://localhost:8000"
+      : window.location.origin;
+
+  document.getElementById("api-docs-link").href = API_BASE + "/api/docs";
+  document.getElementById("api-banner-text").textContent =
+    "Live data from GLAPAGOS Platform API -- " + API_BASE;
+
   function domainClass(domain) {
     const map = {
-      "governance": "badge-governance",
-      "policy": "badge-policy",
+      "governance":        "badge-governance",
+      "policy":            "badge-policy",
       "foundation-models": "badge-foundation-models",
-      "infrastructure": "badge-infrastructure",
-      "safety": "badge-safety",
+      "infrastructure":    "badge-infrastructure",
+      "safety":            "badge-safety",
     };
     return map[domain] || "badge-governance";
   }
@@ -364,7 +441,6 @@
     const countries = item.countries.length > 8
       ? item.countries.slice(0, 8).join(" ") + " +" + (item.countries.length - 8) + " more"
       : item.countries.join(" ");
-
     return `
       <div class="card" onclick="window.open('${item.url}', '_blank')">
         <div class="card-header">
@@ -385,6 +461,18 @@
     `;
   }
 
+  function renderError() {
+    document.getElementById("grid").innerHTML = `
+      <div class="error-state">
+        <p>Cannot reach the GLAPAGOS Platform API at ${API_BASE}</p>
+        <code>uvicorn src.api.main:app --reload --port 8000</code>
+      </div>
+    `;
+    const s = document.getElementById("api-status");
+    s.textContent = "api offline";
+    s.classList.add("offline");
+  }
+
   function render(data) {
     const grid = document.getElementById("grid");
     const label = document.getElementById("count-label");
@@ -398,43 +486,58 @@
   }
 
   async function fetchStats() {
-    const res = await fetch("/api/stats");
+    const res = await fetch(API_BASE + "/api/stats");
     const data = await res.json();
     document.getElementById("stat-total").textContent = data.total_initiatives;
     document.getElementById("stat-countries").textContent = data.countries_covered;
     document.getElementById("stat-domains").textContent = Object.keys(data.by_domain).length;
     document.getElementById("stat-types").textContent = Object.keys(data.by_type).length;
+    const s = document.getElementById("api-status");
+    s.textContent = "api live -- v" + data.data_version;
+    s.classList.remove("offline");
   }
 
   async function fetchInitiatives() {
     const params = new URLSearchParams();
     const domain = document.getElementById("filter-domain").value;
-    const type = document.getElementById("filter-type").value;
+    const type   = document.getElementById("filter-type").value;
     const status = document.getElementById("filter-status").value;
     if (domain) params.set("domain", domain);
-    if (type) params.set("type", type);
+    if (type)   params.set("type", type);
     if (status) params.set("status", status);
-    const res = await fetch("/api/initiatives?" + params.toString());
+    const res = await fetch(API_BASE + "/api/initiatives?" + params.toString());
     return res.json();
   }
 
   async function update() {
-    const data = await fetchInitiatives();
-    render(data);
+    try {
+      const data = await fetchInitiatives();
+      render(data);
+    } catch {
+      renderError();
+    }
+  }
+
+  async function init() {
+    try {
+      await fetchStats();
+      await update();
+    } catch {
+      renderError();
+    }
   }
 
   document.getElementById("filter-domain").addEventListener("change", update);
   document.getElementById("filter-type").addEventListener("change", update);
   document.getElementById("filter-status").addEventListener("change", update);
-  document.getElementById("reset-btn").addEventListener("click", function() {
+  document.getElementById("reset-btn").addEventListener("click", function () {
     document.getElementById("filter-domain").value = "";
-    document.getElementById("filter-type").value = "";
+    document.getElementById("filter-type").value   = "";
     document.getElementById("filter-status").value = "";
     update();
   });
 
-  fetchStats();
-  update();
+  init();
 </script>
 </body>
 </html>
