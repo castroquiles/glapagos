@@ -55,36 +55,6 @@
 
     header a:hover { color: var(--text); }
 
-    .api-banner {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.5rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
-    .api-banner span {
-      font-size: 0.68rem;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
-    }
-
-    .api-status {
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      padding: 0.15rem 0.5rem;
-      border-radius: 2px;
-      background: #1e3a2e;
-      color: #6ee7b7;
-    }
-
-    .api-status.offline {
-      background: #3a1e1e;
-      color: #fca5a5;
-    }
-
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -161,6 +131,24 @@
       font-size: 0.72rem;
       color: var(--text-dim);
       font-family: var(--font-mono);
+    }
+
+    .meta-bar {
+      padding: 0.4rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .meta-bar span {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .meta-bar span b {
+      color: #94a3b8;
+      font-weight: 500;
     }
 
     .grid {
@@ -274,39 +262,6 @@
       font-family: var(--font-mono);
     }
 
-    .error-state {
-      grid-column: 1 / -1;
-      padding: 3rem 2rem;
-      text-align: center;
-    }
-
-    .error-state p {
-      font-size: 0.82rem;
-      font-family: var(--font-mono);
-      color: #fca5a5;
-      margin-bottom: 0.75rem;
-    }
-
-    .error-state code {
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
-      background: var(--surface);
-      padding: 0.75rem 1.25rem;
-      border-radius: 4px;
-      display: inline-block;
-      border: 1px solid var(--border);
-    }
-
-    .loading {
-      grid-column: 1 / -1;
-      padding: 3rem 2rem;
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 0.78rem;
-      font-family: var(--font-mono);
-    }
-
     footer {
       border-top: 1px solid var(--border);
       padding: 0.85rem 2rem;
@@ -334,7 +289,6 @@
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
       .stat { border-right: none; border-bottom: 1px solid var(--border); }
       header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-      .api-banner { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -342,13 +296,8 @@
 
 <header>
   <h1><span>GLAPAGOS</span> / regional ai governance dashboard</h1>
-  <a href="/api/docs" target="_blank" id="api-docs-link">api docs</a>
+  <a href="https://github.com/castroquiles/glapagos" target="_blank">github</a>
 </header>
-
-<div class="api-banner">
-  <span id="api-banner-text">connecting to GLAPAGOS Platform API...</span>
-  <span class="api-status" id="api-status">checking...</span>
-</div>
 
 <div class="stats-bar">
   <div class="stat">
@@ -400,31 +349,20 @@
   <span class="count-label" id="count-label"></span>
 </div>
 
-<div class="grid" id="grid">
-  <div class="loading">connecting to api...</div>
-</div>
+<div class="meta-bar" id="meta-bar"></div>
+
+<div class="grid" id="grid"></div>
 
 <footer>
   <span>glapagos v0.1.0 -- open multilateral ai platform for the americas</span>
-  <a href="https://github.com/castroquiles/glapagos" target="_blank">github.com/castroquiles/glapagos</a>
+  <a href="https://www.glapagos.com" target="_blank">glapagos.com</a>
 </footer>
 
 <script>
-  // API_BASE is set at runtime.
-  // - Local:      http://localhost:8000
-  // - Production: injected via meta tag or defaults to same origin
-  // To override, add this to your page head before this script:
-  //   <meta name="api-base" content="https://your-railway-url.up.railway.app">
-  const metaBase = document.querySelector('meta[name="api-base"]');
-  const API_BASE = metaBase
-    ? metaBase.getAttribute("content").replace(/\/$/, "")
-    : window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
-      ? "http://localhost:8000"
-      : window.location.origin;
-
-  document.getElementById("api-docs-link").href = API_BASE + "/api/docs";
-  document.getElementById("api-banner-text").textContent =
-    "Live data from GLAPAGOS Platform API -- " + API_BASE;
+  // Data is injected at build time by scripts/build_dashboard.py.
+  // The placeholder __INITIATIVES_DATA__ is replaced with the full
+  // contents of data/initiatives.json before deployment.
+  const DATASET = __INITIATIVES_DATA__;
 
   function domainClass(domain) {
     const map = {
@@ -435,6 +373,18 @@
       "safety":            "badge-safety",
     };
     return map[domain] || "badge-governance";
+  }
+
+  function computeStats(initiatives) {
+    const domains = {};
+    const types = {};
+    const countries = new Set();
+    initiatives.forEach(function(item) {
+      domains[item.domain] = (domains[item.domain] || 0) + 1;
+      types[item.type] = (types[item.type] || 0) + 1;
+      item.countries.forEach(function(c) { countries.add(c); });
+    });
+    return { domains, types, countries };
   }
 
   function renderCard(item) {
@@ -461,80 +411,62 @@
     `;
   }
 
-  function renderError() {
-    document.getElementById("grid").innerHTML = `
-      <div class="error-state">
-        <p>Cannot reach the GLAPAGOS Platform API at ${API_BASE}</p>
-        <code>uvicorn src.api.main:app --reload --port 8000</code>
-      </div>
-    `;
-    const s = document.getElementById("api-status");
-    s.textContent = "api offline";
-    s.classList.add("offline");
+  function getFilters() {
+    return {
+      domain: document.getElementById("filter-domain").value,
+      type:   document.getElementById("filter-type").value,
+      status: document.getElementById("filter-status").value,
+    };
   }
 
-  function render(data) {
+  function applyFilters(initiatives, filters) {
+    return initiatives.filter(function(item) {
+      if (filters.domain && item.domain !== filters.domain) return false;
+      if (filters.type   && item.type   !== filters.type)   return false;
+      if (filters.status && item.status !== filters.status) return false;
+      return true;
+    });
+  }
+
+  function render() {
+    const filters = getFilters();
+    const results = applyFilters(DATASET.initiatives, filters);
     const grid = document.getElementById("grid");
     const label = document.getElementById("count-label");
-    if (!data.results || data.results.length === 0) {
+
+    if (results.length === 0) {
       grid.innerHTML = '<div class="empty">no initiatives match the current filters.</div>';
       label.textContent = "0 results";
       return;
     }
-    grid.innerHTML = data.results.map(renderCard).join("");
-    label.textContent = data.total + " result" + (data.total !== 1 ? "s" : "");
+
+    grid.innerHTML = results.map(renderCard).join("");
+    label.textContent = results.length + " result" + (results.length !== 1 ? "s" : "");
   }
 
-  async function fetchStats() {
-    const res = await fetch(API_BASE + "/api/stats");
-    const data = await res.json();
-    document.getElementById("stat-total").textContent = data.total_initiatives;
-    document.getElementById("stat-countries").textContent = data.countries_covered;
-    document.getElementById("stat-domains").textContent = Object.keys(data.by_domain).length;
-    document.getElementById("stat-types").textContent = Object.keys(data.by_type).length;
-    const s = document.getElementById("api-status");
-    s.textContent = "api live -- v" + data.data_version;
-    s.classList.remove("offline");
+  function init() {
+    const stats = computeStats(DATASET.initiatives);
+    document.getElementById("stat-total").textContent     = DATASET.initiatives.length;
+    document.getElementById("stat-countries").textContent = stats.countries.size;
+    document.getElementById("stat-domains").textContent   = Object.keys(stats.domains).length;
+    document.getElementById("stat-types").textContent     = Object.keys(stats.types).length;
+
+    document.getElementById("meta-bar").innerHTML =
+      '<span>version <b>' + DATASET.version + '</b></span>' +
+      '<span>updated <b>' + DATASET.updated + '</b></span>' +
+      '<span>source <b>data/initiatives.json</b></span>';
+
+    render();
   }
 
-  async function fetchInitiatives() {
-    const params = new URLSearchParams();
-    const domain = document.getElementById("filter-domain").value;
-    const type   = document.getElementById("filter-type").value;
-    const status = document.getElementById("filter-status").value;
-    if (domain) params.set("domain", domain);
-    if (type)   params.set("type", type);
-    if (status) params.set("status", status);
-    const res = await fetch(API_BASE + "/api/initiatives?" + params.toString());
-    return res.json();
-  }
-
-  async function update() {
-    try {
-      const data = await fetchInitiatives();
-      render(data);
-    } catch {
-      renderError();
-    }
-  }
-
-  async function init() {
-    try {
-      await fetchStats();
-      await update();
-    } catch {
-      renderError();
-    }
-  }
-
-  document.getElementById("filter-domain").addEventListener("change", update);
-  document.getElementById("filter-type").addEventListener("change", update);
-  document.getElementById("filter-status").addEventListener("change", update);
-  document.getElementById("reset-btn").addEventListener("click", function () {
+  document.getElementById("filter-domain").addEventListener("change", render);
+  document.getElementById("filter-type").addEventListener("change", render);
+  document.getElementById("filter-status").addEventListener("change", render);
+  document.getElementById("reset-btn").addEventListener("click", function() {
     document.getElementById("filter-domain").value = "";
     document.getElementById("filter-type").value   = "";
     document.getElementById("filter-status").value = "";
-    update();
+    render();
   });
 
   init();
