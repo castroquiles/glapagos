@@ -1,10 +1,12 @@
-name: Deploy Dashboard to GitHub Pages
+name: Build and Deploy Dashboard
 
 on:
   push:
     branches: [main]
     paths:
+      - "data/initiatives.json"
       - "src/dashboard/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,23 +19,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Inject data into dashboard
+        run: |
+          DATA=$(cat data/initiatives.json)
+          TEMPLATE=$(cat src/dashboard/index.html)
+          echo "$TEMPLATE" | sed "s|__INITIATIVES_DATA__|$(echo $DATA | sed 's/[&/\]/\\&/g')|g" > dist/index.html
+        shell: bash
+
+      - name: Create dist directory and inject data
+        run: |
+          mkdir -p dist
+          python3 scripts/build_dashboard.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload dashboard
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: src/dashboard
+          path: dist
 
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
