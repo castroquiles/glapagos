@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GLAPAGOS — Regional AI Governance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink:       #0d0f0e;
+  --paper:     #f4f1ea;
+  --surface:   #f9f7f2;
+  --accent:    #1a4a2e;
+  --accent2:   #b83a18;
+  --muted:     #6b6b5e;
+  --border:    #d4d0c6;
+  --score-bg:  #e8e4d8;
+
+  --s-active:  #1a4a2e;
+  --s-progress:#8a5a12;
+  --s-draft:   #1e4a8a;
+  --s-none:    #8a1a1a;
+
+  --r-low:     #1a6b3c;
+  --r-medium:  #8a5a12;
+  --r-high:    #8a1a1a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* --- Header ---------------------------------------------------------------- */
+header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 2.25rem 3rem 1.75rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 1rem;
+  border-bottom: 3px solid var(--accent2);
+}
+.wordmark {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.wordmark em { color: var(--accent2); font-style: normal; }
+.tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #888;
+  margin-top: 0.45rem;
+}
+.header-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: #666;
+  text-align: right;
+  line-height: 2;
+}
+.header-meta span { color: #999; }
+
+/* --- Nav ------------------------------------------------------------------- */
+nav {
+  background: var(--ink);
+  padding: 0 3rem;
+  display: flex;
+  border-bottom: 1px solid #2a2a2a;
+}
+nav button {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.4rem;
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -1px;
+}
+nav button:hover { color: #ccc; }
+nav button.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+/* --- Main ------------------------------------------------------------------ */
+main { padding: 2.5rem 3rem; max-width: 1400px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* --- Section header -------------------------------------------------------- */
+.section-hd {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ink);
+}
+.section-hd h2 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.section-hd small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+/* --- Stat grid ------------------------------------------------------------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.stat-card {
+  background: var(--surface);
+  padding: 1.35rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.stat-card .lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.57rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat-card .val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.stat-card .sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* --- Overview lower grid --------------------------------------------------- */
+.overview-lower {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+.domain-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+.domain-row-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  width: 150px;
+  flex-shrink: 0;
+}
+.trend-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: 52px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.trend-up    { color: var(--r-low); }
+.trend-down  { color: var(--r-high); }
+.trend-stable { color: var(--r-medium); }
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.status-row .count {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+/* --- Score bar ------------------------------------------------------------- */
+.bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+.bar {
+  flex: 1;
+  height: 5px;
+  background: var(--score-bg);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+.bar-fill.score-low    { background: var(--r-high); }
+.bar-fill.score-medium { background: var(--r-medium); }
+.bar-fill.score-high   { background: var(--r-low); }
+.bar-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* --- Badge ----------------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.5rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.badge-Active      { background: #d4ede2; color: var(--s-active);   border: 1px solid #b0d4c4; }
+.badge-In-Progress { background: #fdefd4; color: var(--s-progress);  border: 1px solid #e8d4a0; }
+.badge-Draft       { background: #d4e4f4; color: var(--s-draft);     border: 1px solid #b0c8e8; }
+.badge-None        { background: #f4d4d4; color: var(--s-none);      border: 1px solid #e0b0b0; }
+
+/* --- Risk dot -------------------------------------------------------------- */
+.risk-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+.risk-Low    { background: var(--r-low); }
+.risk-Medium { background: var(--r-medium); }
+.risk-High   { background: var(--r-high); }
+
+/* --- Filter bar ------------------------------------------------------------ */
+.filter-bar {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+.filter-bar label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.filter-bar select,
+.filter-bar input[type="text"] {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+}
+.filter-bar select:focus,
+.filter-bar input[type="text"]:focus { border-color: var(--accent); }
+
+/* --- Table ----------------------------------------------------------------- */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+thead tr { border-bottom: 2px solid var(--ink); }
+th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.57rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+th:hover { color: var(--ink); }
+th.sort-asc::after  { content: ' +'; color: var(--accent2); }
+th.sort-desc::after { content: ' -'; color: var(--accent2); }
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+tbody tr:hover { background: var(--score-bg); }
+td { padding: 0.65rem 0.75rem; vertical-align: middle; }
+.td-country {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.84rem;
+}
+.td-region {
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.td-bool {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  text-align: center;
+}
+.td-bool.yes { color: var(--r-low); }
+.td-bool.no  { color: var(--border); }
+.td-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* --- Benchmarks grid ------------------------------------------------------- */
+.benchmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.5rem;
+}
+.domain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.4rem;
+  position: relative;
+}
+.domain-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.domain-card.trend-up::before    { background: var(--r-low); }
+.domain-card.trend-down::before  { background: var(--r-high); }
+.domain-card.trend-stable::before { background: var(--r-medium); }
+
+.domain-card-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+.domain-card-desc {
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 1.1rem;
+  line-height: 1.5;
+}
+.domain-score-big {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 0.9rem;
+}
+.domain-score-big span {
+  font-family: 'Crimson Pro', serif;
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.sub-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+.sub-score-row { display: flex; flex-direction: column; gap: 0.12rem; }
+.sub-score-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.54rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.key-actors {
+  font-size: 0.72rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+  margin-top: 0.2rem;
+}
+.key-actors strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.54rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* --- Detail overlay -------------------------------------------------------- */
+.detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 15, 14, 0.6);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.detail-overlay.open { display: flex; }
+.detail-panel {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  max-width: 520px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 2rem;
+  position: relative;
+}
+.detail-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  background: none;
+  border: 1px solid var(--border);
+  padding: 0.28rem 0.55rem;
+  cursor: pointer;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.detail-close:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.detail-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.detail-country {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  margin-bottom: 0.2rem;
+}
+.detail-framework {
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.detail-field label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.detail-field .fval {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.detail-notes {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--muted);
+  border-left: 2px solid var(--border);
+  padding-left: 0.85rem;
+  margin-bottom: 1rem;
+}
+.domain-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.domain-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.detail-caveat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+/* --- Loading / error ------------------------------------------------------- */
+.loading {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 3rem 0;
+  text-align: center;
+}
+.api-error {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--s-none);
+  background: #f8eaea;
+  border: 1px solid #e0b8b8;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+}
+
+/* --- Schemas tab ----------------------------------------------------------- */
+.schema-section { margin-bottom: 2rem; }
+.schema-section h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--border);
+}
+.schema-block {
+  background: var(--ink);
+  color: #b8d8b8;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1.75;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  border-left: 3px solid var(--accent2);
+}
+.sk { color: #88beff; }
+.sv { color: #b8d8b8; }
+
+/* --- Footer ---------------------------------------------------------------- */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 1.25rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+footer p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">GLAP<em>AGOS</em></div>
+    <div class="tagline">Global Laboratory for AI Progress &amp; Governance: Open Systems</div>
+  </div>
+  <div class="header-meta">
+    <div>Western Hemisphere &mdash; <span id="country-count">loading</span> nations tracked</div>
+    <div>Data revised: <span id="last-updated">loading</span></div>
+    <div>v0.1.0 &mdash; Platform Demo</div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-view="overview">Overview</button>
+  <button data-view="policies">Policies</button>
+  <button data-view="benchmarks">Benchmarks</button>
+  <button data-view="schemas">Schemas</button>
+</nav>
+
+<main>
+
+  <!-- OVERVIEW -->
+  <div id="view-overview" class="view active">
+    <div id="stats-grid" class="stats-grid">
+      <div class="loading" style="grid-column:1/-1">Fetching summary data...</div>
+    </div>
+    <div class="overview-lower" id="overview-lower"></div>
+  </div>
+
+  <!-- POLICIES -->
+  <div id="view-policies" class="view">
+    <div class="filter-bar">
+      <label>Status</label>
+      <select id="f-status">
+        <option value="">All</option>
+        <option>Active</option>
+        <option>In Progress</option>
+        <option>Draft</option>
+        <option>None</option>
+      </select>
+      <label>Region</label>
+      <select id="f-region">
+        <option value="">All</option>
+        <option>North America</option>
+        <option>South America</option>
+        <option>Central America</option>
+        <option>Caribbean</option>
+      </select>
+      <label>Risk tier</label>
+      <select id="f-risk">
+        <option value="">All</option>
+        <option>Low</option>
+        <option>Medium</option>
+        <option>High</option>
+      </select>
+      <label>Search</label>
+      <input type="text" id="f-search" placeholder="country or framework name" style="min-width:200px" />
+    </div>
+    <div class="section-hd">
+      <h2>Regional AI Governance Policies</h2>
+      <small id="table-count"></small>
+    </div>
+    <div class="table-wrap">
+      <table id="policy-table">
+        <thead>
+          <tr>
+            <th data-col="country">Country</th>
+            <th data-col="region">Region</th>
+            <th data-col="status">Status</th>
+            <th data-col="risk_tier">Risk</th>
+            <th data-col="compliance_score">Score</th>
+            <th data-col="open_source_commitment">Open Source</th>
+            <th data-col="multilateral_participation">Multilateral</th>
+            <th data-col="enacted_date">Enacted</th>
+          </tr>
+        </thead>
+        <tbody id="policy-tbody">
+          <tr><td colspan="8" class="loading">Fetching policy records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BENCHMARKS -->
+  <div id="view-benchmarks" class="view">
+    <div class="section-hd">
+      <h2>Domain Benchmark Scores &mdash; Western Hemisphere</h2>
+    </div>
+    <div class="benchmarks-grid" id="benchmarks-grid">
+      <div class="loading">Fetching benchmark data...</div>
+    </div>
+  </div>
+
+  <!-- SCHEMAS -->
+  <div id="view-schemas" class="view">
+    <div class="section-hd">
+      <h2>Data Schemas</h2>
+      <small>data/schemas/governance_schema.json</small>
+    </div>
+    <div id="schema-content">
+      <div class="loading">Fetching schema definitions...</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-panel" id="detail-panel">
+    <button class="detail-close" id="detail-close">Close</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<footer>
+  <p>GLAPAGOS &mdash; Apache 2.0 / CC BY 4.0 / ODbL &mdash;
+     <a href="https://github.com/castroquiles/glapagos" target="_blank">github.com/castroquiles/glapagos</a>
+  </p>
+  <p>Governance scores are indicative estimates for demonstration only. Verify from primary sources.</p>
+</footer>
+
+<script>
+/* --------------------------------------------------------------------------
+   State
+-------------------------------------------------------------------------- */
+let allPolicies = [];
+let sortCol = 'compliance_score';
+let sortDir = 'desc';
+
+/* --------------------------------------------------------------------------
+   Navigation
+-------------------------------------------------------------------------- */
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+  });
+});
+
+/* --------------------------------------------------------------------------
+   Fetch
+-------------------------------------------------------------------------- */
+async function fetchJSON(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${path}`);
+  return res.json();
+}
+
+function showError(el, msg) {
+  el.innerHTML = `<div class="api-error">Error: ${msg}</div>`;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+-------------------------------------------------------------------------- */
+function scoreClass(n) {
+  if (n >= 60) return 'score-high';
+  if (n >= 35) return 'score-medium';
+  return 'score-low';
+}
+
+function badgeClass(status) {
+  return 'badge-' + status.replace(/\s+/g, '-');
+}
+
+/* --------------------------------------------------------------------------
+   Overview
+-------------------------------------------------------------------------- */
+async function loadOverview() {
+  const grid  = document.getElementById('stats-grid');
+  const lower = document.getElementById('overview-lower');
+  try {
+    const s = await fetchJSON('/api/summary');
+    document.getElementById('country-count').textContent = s.total_countries;
+
+    const cards = [
+      { lbl: 'Nations tracked',         val: s.total_countries,              sub: 'Western Hemisphere' },
+      { lbl: 'Active frameworks',        val: s.status_breakdown.Active,       sub: 'Enacted policy' },
+      { lbl: 'In progress',              val: s.status_breakdown['In Progress'], sub: 'Under development' },
+      { lbl: 'Draft stage',              val: s.status_breakdown.Draft,        sub: 'Planning phase' },
+      { lbl: 'No framework',             val: s.status_breakdown.None,         sub: 'Gap identified' },
+      { lbl: 'Avg compliance score',     val: s.avg_compliance_score,          sub: 'Out of 100' },
+      { lbl: 'High-risk nations',        val: s.high_risk_countries,           sub: 'Require attention' },
+      { lbl: 'Open-source committed',    val: s.open_source_committed,         sub: 'Nations' },
+      { lbl: 'Multilateral participants',val: s.multilateral_participants,     sub: 'OAS / IDB / ECLAC' },
+      { lbl: 'Avg domain score',         val: s.avg_hemisphere_domain_score,   sub: 'Hemisphere-wide' },
+    ];
+
+    grid.innerHTML = cards.map(c => `
+      <div class="stat-card">
+        <div class="lbl">${c.lbl}</div>
+        <div class="val">${c.val}</div>
+        <div class="sub">${c.sub}</div>
+      </div>
+    `).join('');
+
+    lower.innerHTML = `
+      <div>
+        <div class="section-hd"><h2>Top governance domains</h2></div>
+        ${s.top_domains_by_score.map(d => `
+          <div class="domain-row">
+            <div class="domain-row-name">${d.name}</div>
+            <div class="bar-wrap">
+              <div class="bar">
+                <div class="bar-fill ${scoreClass(d.score)}" style="width:${d.score}%"></div>
+              </div>
+              <div class="bar-num">${d.score}</div>
+            </div>
+            <div class="trend-label trend-${d.trend}">${d.trend}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div>
+        <div class="section-hd"><h2>Status breakdown</h2></div>
+        ${Object.entries(s.status_breakdown).map(([k, v]) => `
+          <div class="status-row">
+            <span class="badge ${badgeClass(k)}">${k}</span>
+            <span class="count">${v}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    showError(grid, `Cannot reach /api/summary. Confirm the backend is running. (${e.message})`);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Policies table
+-------------------------------------------------------------------------- */
+async function loadPolicies() {
+  try {
+    const data = await fetchJSON('/api/policies');
+    document.getElementById('last-updated').textContent = data.meta?.last_updated ?? 'unknown';
+    allPolicies = data.policies ?? [];
+    renderTable();
+  } catch (e) {
+    document.getElementById('policy-tbody').innerHTML =
+      `<tr><td colspan="8" class="api-error">Cannot reach /api/policies. Confirm the backend is running. (${e.message})</td></tr>`;
+  }
+}
+
+function renderTable() {
+  const fStatus = document.getElementById('f-status').value;
+  const fRegion = document.getElementById('f-region').value;
+  const fRisk   = document.getElementById('f-risk').value;
+  const fSearch = document.getElementById('f-search').value.toLowerCase().trim();
+
+  let rows = allPolicies.filter(p => {
+    if (fStatus && p.status !== fStatus) return false;
+    if (fRegion && p.region !== fRegion) return false;
+    if (fRisk   && p.risk_tier !== fRisk) return false;
+    if (fSearch &&
+        !p.country.toLowerCase().includes(fSearch) &&
+        !p.framework_name.toLowerCase().includes(fSearch)) return false;
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    let va = a[sortCol] ?? '';
+    let vb = b[sortCol] ?? '';
+    if (typeof va === 'boolean') { va = va ? 1 : 0; vb = vb ? 1 : 0; }
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ?  1 : -1;
+    return 0;
+  });
+
+  document.getElementById('table-count').textContent =
+    `${rows.length} of ${allPolicies.length} records`;
+
+  document.querySelectorAll('#policy-table th').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === sortCol)
+      th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  const tbody = document.getElementById('policy-tbody');
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:2rem; color:var(--muted); text-align:center; font-style:italic; font-size:0.82rem;">No records match the current filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(p => `
+    <tr data-id="${p.id}">
+      <td class="td-country">${p.country}</td>
+      <td class="td-region">${p.region}</td>
+      <td><span class="badge ${badgeClass(p.status)}">${p.status}</span></td>
+      <td>
+        <span class="risk-dot risk-${p.risk_tier}"></span>
+        <span style="font-size:0.78rem;">${p.risk_tier}</span>
+      </td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar">
+            <div class="bar-fill ${scoreClass(p.compliance_score)}" style="width:${p.compliance_score}%"></div>
+          </div>
+          <div class="bar-num">${p.compliance_score}</div>
+        </div>
+      </td>
+      <td class="td-bool ${p.open_source_commitment ? 'yes' : 'no'}">
+        ${p.open_source_commitment ? 'Yes' : 'No'}
+      </td>
+      <td class="td-bool ${p.multilateral_participation ? 'yes' : 'no'}">
+        ${p.multilateral_participation ? 'Yes' : 'No'}
+      </td>
+      <td class="td-date">${p.enacted_date ?? 'not enacted'}</td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('tr[data-id]').forEach(row => {
+    row.addEventListener('click', () => {
+      const p = allPolicies.find(x => x.id === row.dataset.id);
+      if (p) openDetail(p);
+    });
+  });
+}
+
+document.querySelectorAll('#policy-table th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    if (sortCol === th.dataset.col) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortCol = th.dataset.col;
+      sortDir = sortCol === 'compliance_score' ? 'desc' : 'asc';
+    }
+    renderTable();
+  });
+});
+
+['f-status', 'f-region', 'f-risk'].forEach(id =>
+  document.getElementById(id).addEventListener('change', renderTable)
+);
+document.getElementById('f-search').addEventListener('input', renderTable);
+
+/* --------------------------------------------------------------------------
+   Detail panel
+-------------------------------------------------------------------------- */
+function openDetail(p) {
+  const domainHtml = p.domains.length
+    ? p.domains.map(d => `<span class="domain-tag">${d}</span>`).join('')
+    : '<span style="font-size:0.74rem; color:var(--muted); font-style:italic;">No domains specified</span>';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-id">${p.id} &mdash; ${p.iso2}</div>
+    <div class="detail-country">${p.country}</div>
+    <div class="detail-framework">${p.framework_name}</div>
+    <div class="detail-grid">
+      <div class="detail-field">
+        <label>Status</label>
+        <div class="fval"><span class="badge ${badgeClass(p.status)}">${p.status}</span></div>
+      </div>
+      <div class="detail-field">
+        <label>Risk tier</label>
+        <div class="fval">
+          <span class="risk-dot risk-${p.risk_tier}"></span>${p.risk_tier}
+        </div>
+      </div>
+      <div class="detail-field">
+        <label>Compliance score</label>
+        <div class="fval" style="font-family:'Syne',sans-serif; font-size:1.35rem; font-weight:800;">
+          ${p.compliance_score}<span style="font-size:0.72rem; color:var(--muted); font-weight:400;">&thinsp;/ 100</span>
+        </div>
+      </div>
+      <div class="detail-field">
+        <label>Region</label>
+        <div class="fval" style="font-size:0.84rem;">${p.region}</div>
+      </div>
+      <div class="detail-field">
+        <label>Enacted</label>
+        <div class="fval" style="font-family:'JetBrains Mono',monospace; font-size:0.78rem;">
+          ${p.enacted_date ?? 'not yet enacted'}
+        </div>
+      </div>
+      <div class="detail-field">
+        <label>Open-source commitment</label>
+        <div class="fval td-bool ${p.open_source_commitment ? 'yes' : 'no'}" style="font-size:0.82rem;">
+          ${p.open_source_commitment ? 'Yes' : 'No'}
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:0.9rem;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem;">Domains covered</div>
+      <div class="domain-tags">${domainHtml}</div>
+    </div>
+    ${p.notes ? `<div class="detail-notes">${p.notes}</div>` : ''}
+    <div class="detail-caveat">
+      Compliance scores are indicative estimates produced for demonstration purposes.
+      Verify all data against official government and multilateral sources prior to use.
+    </div>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+document.getElementById('detail-close').addEventListener('click', () => {
+  document.getElementById('detail-overlay').classList.remove('open');
+});
+document.getElementById('detail-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('detail-overlay').classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    document.getElementById('detail-overlay').classList.remove('open');
+});
+
+/* --------------------------------------------------------------------------
+   Benchmarks
+-------------------------------------------------------------------------- */
+async function loadBenchmarks() {
+  const grid = document.getElementById('benchmarks-grid');
+  try {
+    const data = await fetchJSON('/api/benchmarks');
+    const domains = data.domains ?? [];
+
+    grid.innerHTML = domains.map(d => {
+      const subRegions = [
+        ['North America',  d.north_america_score],
+        ['South America',  d.south_america_score],
+        ['Central America',d.central_america_score],
+        ['Caribbean',      d.caribbean_score],
+      ];
+      return `
+        <div class="domain-card trend-${d.trend}">
+          <div class="domain-card-name">
+            <span>${d.name}</span>
+            <span class="trend-label trend-${d.trend}" style="font-family:'JetBrains Mono',monospace; font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase;">${d.trend}</span>
+          </div>
+          <div class="domain-card-desc">${d.description}</div>
+          <div class="domain-score-big">${d.hemisphere_score}<span>&thinsp;/ 100</span></div>
+          <div class="sub-scores">
+            ${subRegions.map(([lbl, score]) => `
+              <div class="sub-score-row">
+                <div class="sub-score-lbl">${lbl}</div>
+                <div class="bar-wrap">
+                  <div class="bar">
+                    <div class="bar-fill ${scoreClass(score)}" style="width:${score}%"></div>
+                  </div>
+                  <div class="bar-num">${score}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="key-actors">
+            <strong>Key actors</strong>
+            ${d.key_actors.join(' &middot; ')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    showError(grid, `Cannot reach /api/benchmarks. (${e.message})`);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Schemas
+-------------------------------------------------------------------------- */
+async function loadSchemas() {
+  const el = document.getElementById('schema-content');
+  try {
+    const data = await fetchJSON('/api/schemas');
+
+    function renderFields(obj) {
+      return Object.entries(obj)
+        .map(([k, v]) => `  <span class="sk">"${k}"</span>: <span class="sv">"${v}"</span>`)
+        .join(',\n');
+    }
+
+    el.innerHTML = `
+      <div class="schema-section">
+        <h3>Policy record schema</h3>
+        <div class="schema-block">{\n${renderFields(data.policy_schema)}\n}</div>
+      </div>
+      <div class="schema-section">
+        <h3>Domain benchmark schema</h3>
+        <div class="schema-block">{\n${renderFields(data.benchmark_schema)}\n}</div>
+      </div>
+      <div class="schema-section">
+        <h3>Status colour map</h3>
+        <div class="schema-block">{\n${renderFields(data.status_color_map)}\n}</div>
+      </div>
+    `;
+  } catch (e) {
+    showError(el, `Cannot reach /api/schemas. (${e.message})`);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Bootstrap
+-------------------------------------------------------------------------- */
+loadOverview();
+loadPolicies();
+loadBenchmarks();
+loadSchemas();
+</script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLAPAGOS — Regional AI Governance Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f12;
+      --surface: #141720;
+      --border: #1e2330;
+      --accent: #2563eb;
+      --accent-dim: #1e3a6e;
+      --text: #e2e8f0;
+      --text-dim: #64748b;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    header a {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    header a:hover { color: var(--text); }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      padding: 1.25rem 2rem;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 0.35rem;
+    }
+
+    .controls {
+      padding: 0.85rem 2rem;
+      display: flex;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls label {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.55rem;
+      font-size: 0.78rem;
+      font-family: var(--font-sans);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+    .reset-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 0.3rem 0.7rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover { border-color: var(--text-dim); color: var(--text); }
+
+    .count-label {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .card {
+      background: var(--bg);
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .card:hover { background: var(--surface); }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .badge {
+      font-size: 0.62rem;
+      font-family: var(--font-mono);
+      padding: 0.18rem 0.42rem;
+      border-radius: 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .badge-governance   { background: var(--accent-dim); color: #93c5fd; }
+    .badge-policy       { background: #1e3a2e; color: #6ee7b7; }
+    .badge-foundation-models { background: #2d1e3a; color: #c4b5fd; }
+    .badge-infrastructure    { background: #1e2a3a; color: #7dd3fc; }
+    .badge-safety       { background: #3a1e1e; color: #fca5a5; }
+
+    .card-institution {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+      font-family: var(--font-mono);
+    }
+
+    .card-description {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .type-tag {
+      font-size: 0.63rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    .status-dot.passed { background: var(--yellow); }
+
+    .year-tag {
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .countries {
+      font-size: 0.62rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      margin-top: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+    }
+
+    .loading {
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer span {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.68rem;
+      font-family: var(--font-mono);
+    }
+
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 640px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span>GLAPAGOS</span> / regional ai governance dashboard</h1>
+  <a href="/api/docs" target="_blank">api docs</a>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-value" id="stat-total">--</div>
+    <div class="stat-label">Initiatives</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="stat-countries">--</div>
+    <div class="stat-label">Countries Covered</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="stat-domains">--</div>
+    <div class="stat-label">Domains</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="stat-types">--</div>
+    <div class="stat-label">Initiative Types</div>
+  </div>
+</div>
+
+<div class="controls">
+  <label>Domain</label>
+  <select id="filter-domain">
+    <option value="">All</option>
+    <option value="governance">Governance</option>
+    <option value="policy">Policy</option>
+    <option value="foundation-models">Foundation Models</option>
+    <option value="infrastructure">Infrastructure</option>
+    <option value="safety">Safety</option>
+  </select>
+
+  <label>Type</label>
+  <select id="filter-type">
+    <option value="">All</option>
+    <option value="multilateral">Multilateral</option>
+    <option value="national">National</option>
+    <option value="research">Research</option>
+    <option value="legislative">Legislative</option>
+  </select>
+
+  <label>Status</label>
+  <select id="filter-status">
+    <option value="">All</option>
+    <option value="active">Active</option>
+    <option value="passed">Passed</option>
+  </select>
+
+  <button class="reset-btn" id="reset-btn">reset</button>
+  <span class="count-label" id="count-label"></span>
+</div>
+
+<div class="grid" id="grid">
+  <div class="loading">loading initiatives...</div>
+</div>
+
+<footer>
+  <span>glapagos v0.1.0 -- open multilateral ai platform for the americas</span>
+  <a href="https://github.com/castroquiles/glapagos" target="_blank">github.com/castroquiles/glapagos</a>
+</footer>
+
+<script>
+  function domainClass(domain) {
+    const map = {
+      "governance": "badge-governance",
+      "policy": "badge-policy",
+      "foundation-models": "badge-foundation-models",
+      "infrastructure": "badge-infrastructure",
+      "safety": "badge-safety",
+    };
+    return map[domain] || "badge-governance";
+  }
+
+  function renderCard(item) {
+    const countries = item.countries.length > 8
+      ? item.countries.slice(0, 8).join(" ") + " +" + (item.countries.length - 8) + " more"
+      : item.countries.join(" ");
+
+    return `
+      <div class="card" onclick="window.open('${item.url}', '_blank')">
+        <div class="card-header">
+          <div class="card-title">${item.name}</div>
+          <span class="badge ${domainClass(item.domain)}">${item.domain}</span>
+        </div>
+        <div class="card-institution">${item.institution}</div>
+        <div class="card-description">${item.description}</div>
+        <div class="card-footer">
+          <span class="type-tag">
+            <span class="status-dot ${item.status !== "active" ? item.status : ""}"></span>
+            ${item.type} / ${item.status}
+          </span>
+          <span class="year-tag">${item.year}</span>
+        </div>
+        <div class="countries">${countries}</div>
+      </div>
+    `;
+  }
+
+  function render(data) {
+    const grid = document.getElementById("grid");
+    const label = document.getElementById("count-label");
+    if (!data.results || data.results.length === 0) {
+      grid.innerHTML = '<div class="empty">no initiatives match the current filters.</div>';
+      label.textContent = "0 results";
+      return;
+    }
+    grid.innerHTML = data.results.map(renderCard).join("");
+    label.textContent = data.total + " result" + (data.total !== 1 ? "s" : "");
+  }
+
+  async function fetchStats() {
+    const res = await fetch("/api/stats");
+    const data = await res.json();
+    document.getElementById("stat-total").textContent = data.total_initiatives;
+    document.getElementById("stat-countries").textContent = data.countries_covered;
+    document.getElementById("stat-domains").textContent = Object.keys(data.by_domain).length;
+    document.getElementById("stat-types").textContent = Object.keys(data.by_type).length;
+  }
+
+  async function fetchInitiatives() {
+    const params = new URLSearchParams();
+    const domain = document.getElementById("filter-domain").value;
+    const type = document.getElementById("filter-type").value;
+    const status = document.getElementById("filter-status").value;
+    if (domain) params.set("domain", domain);
+    if (type) params.set("type", type);
+    if (status) params.set("status", status);
+    const res = await fetch("/api/initiatives?" + params.toString());
+    return res.json();
+  }
+
+  async function update() {
+    const data = await fetchInitiatives();
+    render(data);
+  }
+
+  document.getElementById("filter-domain").addEventListener("change", update);
+  document.getElementById("filter-type").addEventListener("change", update);
+  document.getElementById("filter-status").addEventListener("change", update);
+  document.getElementById("reset-btn").addEventListener("click", function() {
+    document.getElementById("filter-domain").value = "";
+    document.getElementById("filter-type").value = "";
+    document.getElementById("filter-status").value = "";
+    update();
+  });
+
+  fetchStats();
+  update();
+</script>
+</body>
+</html>

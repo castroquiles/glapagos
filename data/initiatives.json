@@ -1,0 +1,126 @@
+{
+  "version": "0.1.0",
+  "updated": "2026-06-06",
+  "initiatives": [
+    {
+      "id": "santiago-declaration",
+      "name": "Santiago Declaration on AI",
+      "type": "multilateral",
+      "status": "active",
+      "year": 2023,
+      "countries": ["CL", "AR", "BR", "CO", "MX", "PE", "UY", "EC", "BO", "PY", "VE", "DO", "GT", "HN", "SV", "NI", "CR", "PA", "CU", "PR"],
+      "institution": "Government of Chile / UNESCO / CAF",
+      "domain": "governance",
+      "description": "Twenty-nation declaration establishing shared principles for ethical AI across Latin America and the Caribbean.",
+      "url": "https://www.glapagos.com"
+    },
+    {
+      "id": "idb-ai-framework",
+      "name": "IDB Regulatory Framework for AI in LAC",
+      "type": "multilateral",
+      "status": "active",
+      "year": 2024,
+      "countries": ["AR", "BO", "BR", "CL", "CO", "CR", "DO", "EC", "GT", "HN", "MX", "NI", "PA", "PE", "PY", "SV", "UY"],
+      "institution": "Inter-American Development Bank",
+      "domain": "policy",
+      "description": "Technical framework identifying regulatory gaps and interoperability requirements for AI governance across LAC member states.",
+      "url": "https://publications.iadb.org"
+    },
+    {
+      "id": "latam-gpt",
+      "name": "LATAM-GPT",
+      "type": "research",
+      "status": "active",
+      "year": 2023,
+      "countries": ["CL", "AR", "BR", "CO", "MX", "PE", "UY"],
+      "institution": "CENIA / 60+ institutions",
+      "domain": "foundation-models",
+      "description": "Open-source foundation model initiative coordinated across more than sixty institutions across the region.",
+      "url": "https://cenia.cl"
+    },
+    {
+      "id": "brazil-national-ai-strategy",
+      "name": "Brazilian National AI Strategy",
+      "type": "national",
+      "status": "active",
+      "year": 2021,
+      "countries": ["BR"],
+      "institution": "Government of Brazil / MCTI",
+      "domain": "governance",
+      "description": "National strategy covering AI research, public sector deployment, ethics, and international cooperation.",
+      "url": "https://www.gov.br"
+    },
+    {
+      "id": "chile-national-ai-policy",
+      "name": "Chile National AI Policy",
+      "type": "national",
+      "status": "active",
+      "year": 2021,
+      "countries": ["CL"],
+      "institution": "Government of Chile / Ministry of Science",
+      "domain": "governance",
+      "description": "National AI policy covering research, talent, public sector use, and international leadership in AI governance.",
+      "url": "https://www.gob.cl"
+    },
+    {
+      "id": "uruguay-ai-strategy",
+      "name": "Uruguay AI Strategy",
+      "type": "national",
+      "status": "active",
+      "year": 2019,
+      "countries": ["UY"],
+      "institution": "Government of Uruguay / AGESIC",
+      "domain": "governance",
+      "description": "One of the earliest national AI strategies in LAC, covering public sector AI, data governance, and digital rights.",
+      "url": "https://www.gub.uy"
+    },
+    {
+      "id": "colombia-ai-ethics",
+      "name": "Colombia Ethical Framework for AI",
+      "type": "national",
+      "status": "active",
+      "year": 2021,
+      "countries": ["CO"],
+      "institution": "Government of Colombia / MinTIC",
+      "domain": "policy",
+      "description": "National ethical framework for responsible AI deployment in public and private sectors.",
+      "url": "https://www.mintic.gov.co"
+    },
+    {
+      "id": "hres-649",
+      "name": "H.Res. 649: Western Hemisphere AI Strategy",
+      "type": "legislative",
+      "status": "passed",
+      "year": 2023,
+      "countries": ["US"],
+      "institution": "U.S. House of Representatives / 118th Congress",
+      "domain": "governance",
+      "description": "House resolution urging development of a safe and responsible regional AI strategy for the Western Hemisphere protecting civil rights and equal opportunity.",
+      "url": "https://www.congress.gov"
+    },
+    {
+      "id": "iberoamerican-charter-ai",
+      "name": "Ibero-American Charter for AI in Public Administration",
+      "type": "multilateral",
+      "status": "active",
+      "year": 2023,
+      "countries": ["ES", "PT", "MX", "AR", "CL", "CO", "PE", "UY", "BO", "CR", "DO", "EC", "GT", "HN", "PA", "PY", "SV"],
+      "institution": "CLAD / Ibero-American General Secretariat",
+      "domain": "policy",
+      "description": "Regional charter establishing shared guidelines for ethical, transparent, and inclusive AI in Ibero-American public administrations.",
+      "url": "https://clad.org"
+    },
+    {
+      "id": "glapagos",
+      "name": "GLAPAGOS",
+      "type": "multilateral",
+      "status": "active",
+      "year": 2026,
+      "countries": ["US", "MX", "BR", "AR", "CL", "CO", "PE", "UY", "EC", "BO", "PY", "DO", "GT", "HN", "SV", "NI", "CR", "PA", "CA"],
+      "institution": "GENIA Americas Corporation",
+      "domain": "infrastructure",
+      "description": "Open multilateral AI platform for the Western Hemisphere. Shared infrastructure, federated governance, open research across 35 nations.",
+      "url": "https://www.glapagos.com"
+    }
+  ]
+}
