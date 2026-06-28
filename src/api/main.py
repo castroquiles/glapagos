@@ -16,9 +16,9 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException, Query  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from fastapi.staticfiles import StaticFiles  # type: ignore
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_FILE = BASE_DIR / "data" / "initiatives.json"
@@ -26,7 +26,7 @@ STATIC_DIR = BASE_DIR / "src" / "dashboard"
 
 app = FastAPI(
     title="GLAPAGOS Platform API",
-    description="Regional AI governance initiatives for the Western Hemisphere.",
+    description="Regional AI governance across the Western Hemisphere.",
     version="0.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
@@ -80,7 +80,10 @@ def list_initiatives(
     domain: Optional[str] = Query(None, description="Filter by domain"),
     status: Optional[str] = Query(None, description="Filter by status"),
     type: Optional[str] = Query(None, description="Filter by type"),
-    country: Optional[str] = Query(None, description="ISO 3166-1 alpha-2 country code"),
+    country: Optional[str] = Query(
+        None,
+        description="ISO 3166-1 alpha-2 country code",
+    ),
 ) -> dict:
     data = load_data()
     results = data["initiatives"]

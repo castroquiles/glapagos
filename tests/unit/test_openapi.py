@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from src.api.main import app
 
-SPEC_PATH = Path(__file__).resolve().parents[2] / "docs" / "api" / "openapi.json"
+SPEC_PATH = Path(__file__).resolve().parents[2] / "docs/api/openapi.json"
 
 EXPECTED_ENDPOINTS = (
     "/api/health",
@@ -44,9 +44,9 @@ def test_committed_spec_matches_app():
     # Normalise the live schema through JSON so the comparison is
     # type-for-type with the committed file. Drift means it is stale.
     live = json.loads(json.dumps(app.openapi()))
-    assert _committed_spec() == live, (
-        "docs/api/openapi.json is stale; " "regenerate with scripts/export_openapi.py"
-    )
+    assert (
+        _committed_spec() == live
+    ), "docs/api/openapi.json is stale; regenerate via export_openapi.py"
 
 
 def test_spec_documents_all_endpoints():

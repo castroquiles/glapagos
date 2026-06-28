@@ -2,5 +2,5 @@
 GLAPAGOS Platform API
 
 FastAPI application providing the GLAPAGOS HTTP API.
-API specification: docs/api/openapi.json (regenerate with scripts/export_openapi.py)
+API spec: docs/api/openapi.json (regenerate via scripts/export_openapi.py)
 """
